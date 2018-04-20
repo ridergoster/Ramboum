@@ -27,14 +27,14 @@ Quaternion q;        // [w, x, y, z]         quaternion container
 VectorFloat gravity; // [x, y, z]            gravity vector
 float ypr[3];        // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 // --------------------- Sensor variables ------------------------------------
-const int rs = 5, en = 4, d4 = A4, d5 = A5, d6 = 1, d7 = 0;
+const int rs = 5, en = 4, d4 = A0, d5 = A1, d6 = 1, d7 = 0;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 const int roadLed[3] = {6, 7, 8};
 const int playerLed[3] = {9, 10, 11};
 const int gearDownBtn = 12;
 const int gearUpBtn = 13;
-const int knockSensor[3] = {A1, A2, A3};
-const int soundSensor = A0;
+const int knockSensor[3] = {A3, A4, A5};
+const int soundSensor = A2;
 // --------------------- Sensor Values ---------------------------------------
 int roadLedState[3] = {LOW, LOW, LOW};
 int playerLedState[3] = {LOW, HIGH, LOW};
