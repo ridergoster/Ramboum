@@ -42,6 +42,8 @@ int knockValue = 0;
 int soundValue = 0;
 int soundMin = 1024;
 int soundMax = 0;
+int gearUpValue = LOW;
+int gearDownValue = LOW;
 // --------------------- Sensor Threshold ------------------------------------
 const int knockThreshold = 200;
 const int soundThreshold = 600;
@@ -52,6 +54,7 @@ unsigned long speedCooldownMillis = 0;
 unsigned long soundMillis = 0;
 unsigned long wheelMillis = 0;
 unsigned long knockMillis = 0;
+unsigned long currentMillis = 0;
 
 int randomCarInterval = 0;
 const int speedCooldownInterval = 1000;
@@ -141,40 +144,41 @@ void updateFIFO() {
 }
 
 void gameOver() {
-  lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("GAME OVER...");
+  lcd.print("GAME OVER...    ");
   lcd.setCursor(0, 1);
   lcd.print("score:");
   sprintf(numStr,"%3d", score);
   lcd.setCursor(6, 1);
   lcd.print(numStr);
+  lcd.setCursor(9, 1);
+  lcd.print("       ");
 
-  if (digitalRead(gearDownBtn) == HIGH && digitalRead(gearUpBtn) == HIGH) {
+  if (gearDownValue == HIGH && gearUpValue == HIGH) {
     playerPosition = MIDDLE;
     playerSpeed = startSpeed;
     gearSpeed = 0;
     score = 0;
     life = 3;
-    memset(road, 0, sizeof(bool[0][0]) * 3 * roadSize);
+    for (int i = 0 ; i < 3 ; i++)
+      for(int j = 0 ; j < roadSize ; j++)
+        road[i][j] = false;
   }
 }
 
 void getMenu() {
-  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("LEFT:      MULTI");
   lcd.setCursor(0, 1);
   lcd.print("RIGHT:     SOLO");
-  if (digitalRead(gearDownBtn) == HIGH) {
+  if (gearDownValue == HIGH) {
     playerMode = MULTIPLE;
-  } else if (digitalRead(gearUpBtn) == HIGH) {
+  } else if (gearUpValue == HIGH) {
     playerMode = SINGLE;
   }
 }
 
 void getRandomCar() {
-  unsigned long currentMillis = millis();
   randomCarInterval = random(playerSpeed, playerSpeed+randomCarDelay);
 
   if (currentMillis - randomCarMillis < randomCarInterval) {
@@ -189,8 +193,6 @@ void getRandomCar() {
 }
 
 void getKnockingCar() {
-  unsigned long currentMillis = millis();
-
   if (currentMillis - knockMillis < knockInterval) {
     return;
   }
@@ -206,8 +208,6 @@ void getKnockingCar() {
 }
 
 void updatePlayer() {
-  unsigned long currentMillis = millis();
-
   if (currentMillis - wheelMillis < wheelInterval) {
     return;
   }
@@ -241,11 +241,9 @@ void updatePlayer() {
 }
 
 void updateSpeed() {
-  unsigned long currentMillis = millis();
-
   if (currentMillis - speedCooldownMillis >= speedCooldownInterval) {
     if (
-      digitalRead(gearDownBtn) == HIGH &&
+      gearDownValue == HIGH &&
       gearSpeed > 0 &&
       playerSpeed >= ((vMax[gearSpeed] + vMax[gearSpeed-1])/2)
     ) {
@@ -253,7 +251,7 @@ void updateSpeed() {
       playerSpeed = vMax[gearSpeed];
       speedCooldownMillis = currentMillis;
     } else if (
-      digitalRead(gearUpBtn) == HIGH &&
+      gearUpValue == HIGH &&
       gearSpeed < 8 &&
       playerSpeed <= vMax[gearSpeed]+10
     ) {
@@ -364,7 +362,9 @@ void printData() {
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
+  currentMillis = millis();
+  gearDownValue = digitalRead(gearDownBtn);
+  gearUpValue = digitalRead(gearUpBtn);
 
   if (!dmpReady) {
     return;
