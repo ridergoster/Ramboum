@@ -77,7 +77,9 @@ char numStr[3];
 const int wheelAngle = 35;
 // ---------------------------------------------------------------------------
 
+// Setup the parameters
 void setup() {
+  // Init components
   lcd.begin(16, 2);
   Serial.begin(9600);
   Wire.begin();
@@ -108,16 +110,15 @@ void setup() {
     packetSize = mpu.dmpGetFIFOPacketSize();
   } else {
     // ERROR!
-    // 1 = initial memory load failed
-    // 2 = DMP configuration updates failed
-    // (if it's going to break, usually the code will be 1)
     Serial.print(F("DMP Initialization failed (code "));
     Serial.print(devStatus);
     Serial.println(F(")"));
   }
 
+  // init road array
   memset(road, 0, sizeof(bool[0][0]) * 3 * roadSize);
 
+  // init pinMode
   pinMode(roadLed[0], OUTPUT);
   pinMode(roadLed[1], OUTPUT);
   pinMode(roadLed[2], OUTPUT);
@@ -129,9 +130,11 @@ void setup() {
   pinMode(gearDownBtn, INPUT);
   pinMode(gearUpBtn, INPUT);
 
+  // trigger random seed
   randomSeed(analogRead(0));
 }
 
+// FIFO update for gyroscope
 void updateFIFO() {
   while ((fifoCount = mpu.getFIFOCount()) < packetSize) {
     Serial.print("updating FIFO");
@@ -144,6 +147,7 @@ void updateFIFO() {
   }
 }
 
+// game over screen
 void gameOver() {
   lcd.setCursor(0, 0);
   lcd.print("GAME OVER...    ");
@@ -155,6 +159,7 @@ void gameOver() {
   lcd.setCursor(9, 1);
   lcd.print("       ");
 
+  // press 2 buttons to restart the game
   if (gearDownValue == HIGH && gearUpValue == HIGH) {
     playerPosition = MIDDLE;
     playerSpeed = startSpeed;
@@ -167,6 +172,7 @@ void gameOver() {
   }
 }
 
+// get menu screen
 void getMenu() {
   lcd.setCursor(0, 0);
   lcd.print("LEFT:      MULTI");
@@ -179,6 +185,7 @@ void getMenu() {
   }
 }
 
+// trigger random car
 void getRandomCar() {
   randomCarInterval = random(playerSpeed, playerSpeed+randomCarDelay);
 
@@ -193,6 +200,7 @@ void getRandomCar() {
   }
 }
 
+// trigger car from knock sensor
 void getKnockingCar() {
   if (currentMillis - knockMillis < knockInterval) {
     return;
@@ -208,6 +216,7 @@ void getKnockingCar() {
   }
 }
 
+// update player position
 void updatePlayer() {
   if (currentMillis - wheelMillis < wheelInterval) {
     return;
@@ -241,7 +250,10 @@ void updatePlayer() {
   }
 }
 
+// update speed and gear
 void updateSpeed() {
+
+  // update gear with buttons
   if (currentMillis - speedCooldownMillis >= speedCooldownInterval) {
     if (
       gearDownValue == HIGH &&
@@ -261,6 +273,7 @@ void updateSpeed() {
     }
   }
 
+  // update speed with microphone
   if (currentMillis - soundMillis >= soundInterval) {
     soundMillis = currentMillis;
     soundValue = soundMax - soundMin;
@@ -289,6 +302,7 @@ void updateSpeed() {
   }
 }
 
+// update road to next frame
 void updateRoad() {
   for (int i = 0; i < 3; i++) {
     for (int j = 0 ; j < roadSize-1; j++) {
@@ -298,6 +312,7 @@ void updateRoad() {
   }
 }
 
+// update score to next frame
 void updateScore() {
   for (int i = 0 ; i < 3 ; i++) {
     if (road[i][0] == true) {
@@ -310,7 +325,10 @@ void updateScore() {
   }
 }
 
+// print road to Serial
 void printGame() {
+  Serial.println();
+
   for (int i = 0; i < 3; i++) {
     for (int j = 0 ; j < roadSize; j++) {
       Serial.print(road[i][j] ? "0" : "X");
@@ -319,6 +337,7 @@ void printGame() {
   }
 }
 
+// change light status to next frame
 void updateLight() {
   for (int i = 0; i < 3; i++) {
     bool haveCar = false;
@@ -339,6 +358,7 @@ void updateLight() {
   }
 }
 
+// print data to lcd
 void printData() {
   lcd.setCursor(0, 0);
   lcd.print("life:");
@@ -363,10 +383,12 @@ void printData() {
 }
 
 void loop() {
+  // getting new value for the loop
   currentMillis = millis();
   gearDownValue = digitalRead(gearDownBtn);
   gearUpValue = digitalRead(gearUpBtn);
 
+  // stop state
   if (!dmpReady) {
     return;
   } else if (life <= 0) {
@@ -374,6 +396,7 @@ void loop() {
     return;
   }
 
+  // mode state
   if (playerMode == MENU) {
     getMenu();
     return;
@@ -384,16 +407,19 @@ void loop() {
     getKnockingCar();
   }
 
+  // update value
   updatePlayer();
   updateSpeed();
 
+  // update frame
   if (currentMillis - frameMillis >= playerSpeed) {
     frameMillis = currentMillis;
     updateRoad();
     updateScore();
-    printGame();
   }
 
+  // render frame
+  printGame();
   updateLight();
   printData();
 }
