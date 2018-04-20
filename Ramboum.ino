@@ -46,7 +46,7 @@ int gearUpValue = LOW;
 int gearDownValue = LOW;
 // --------------------- Sensor Threshold ------------------------------------
 const int knockThreshold = 200;
-const int soundThreshold = 600;
+const int soundThreshold = 500;
 // --------------------- Timer Values ----------------------------------------
 unsigned long randomCarMillis = 0;
 unsigned long frameMillis = 0;
@@ -59,7 +59,7 @@ unsigned long currentMillis = 0;
 int randomCarInterval = 0;
 const int speedCooldownInterval = 1000;
 const int soundInterval = 50;
-const int wheelInterval = 300;
+const int wheelInterval = 250;
 const int knockInterval = 500;
 // --------------------- Games parameters ------------------------------------
 const int roadSize = 20;
@@ -74,6 +74,7 @@ int playerSpeed = startSpeed;
 int score = 0;
 int life = 3;
 char numStr[3];
+const int wheelAngle = 35;
 // ---------------------------------------------------------------------------
 
 void setup() {
@@ -225,13 +226,13 @@ void updatePlayer() {
 
   float iZAxis = ypr[ROLL] * (180 / M_PI);
 
-  if (iZAxis < -45.0) {
+  if (iZAxis < -wheelAngle) {
     if (playerPosition == LEFT) {
       playerPosition = MIDDLE;
     } else if (playerPosition == MIDDLE) {
       playerPosition = RIGHT;
     }
-  } else if (iZAxis > 45.0) {
+  } else if (iZAxis > wheelAngle) {
     if (playerPosition == RIGHT) {
       playerPosition = MIDDLE;
     } else if (playerPosition == MIDDLE) {
@@ -321,7 +322,7 @@ void printGame() {
 void updateLight() {
   for (int i = 0; i < 3; i++) {
     bool haveCar = false;
-    for (int j = 1 ; j < 4; j++) {
+    for (int j = 1 ; j < 3; j++) {
       if (road[i][j] == true) {
         roadLedState[i] = HIGH;
         haveCar = true;
