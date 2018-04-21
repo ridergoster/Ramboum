@@ -29,7 +29,7 @@ float ypr[3];        // [yaw, pitch, roll]   yaw/pitch/roll container and gravit
 // --------------------- Sensor variables ------------------------------------
 const int rs = 5, en = 4, d4 = A0, d5 = A1, d6 = 1, d7 = 0;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-const int roadLed[3] = {6, 7, 8};
+const int roadLed[3] = {8, 7, 6};
 const int playerLed[3] = {9, 10, 11};
 const int gearDownBtn = 12;
 const int gearUpBtn = 13;
@@ -383,6 +383,7 @@ void printData() {
 }
 
 void loop() {
+  Serial.println(playerMode);
   // getting new value for the loop
   currentMillis = millis();
   gearDownValue = digitalRead(gearDownBtn);
@@ -416,10 +417,10 @@ void loop() {
     frameMillis = currentMillis;
     updateRoad();
     updateScore();
+    // render frame
+    printGame();
   }
 
-  // render frame
-  printGame();
   updateLight();
   printData();
 }
